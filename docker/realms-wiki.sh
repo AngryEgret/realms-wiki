@@ -31,4 +31,4 @@ exec gunicorn \
   --user deploy \
   --group deploy \
   --chdir /home/deploy/realms-wiki \
-  'realms:create_app()' >>/var/log/realms-wiki/realms-wiki.log 2>&1
+  'realms:create_app()'
