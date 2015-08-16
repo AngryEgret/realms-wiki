@@ -1,7 +1,7 @@
 FROM buildpack-deps:jessie
 
 # Packages
-RUN apt-get update && \
+RUN apt-get update &&\
     apt-get install -y \
       build-essential \
       python-pip \
@@ -9,27 +9,25 @@ RUN apt-get update && \
       python-dev \
       zlib1g-dev \
       libffi-dev \
-      libyaml-dev
+      libyaml-dev &&\
+  # Add deploy user
+    adduser --disabled-login --gecos '' deploy &&\
+    adduser deploy sudo &&\
+    echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers &&\
+  # Virtualenv
+    virtualenv /home/deploy/realms-wiki/.venv &&\
+    cd /home/deploy/realms-wiki &&\
+    .venv/bin/pip install realms-wiki &&\
+  # Clear some fat
+    apt-get clean &&\
+    rm -rf \
+      /var/lib/apt/lists/* \
+      /tmp/* \
+      /var/tmp/*
 
-ADD user-setup.sh /tmp/user-setup.sh
-RUN chmod +x /tmp/user-setup.sh ;\
-    sync ;\
-    /tmp/user-setup.sh
-
-# Virtualenv
-RUN virtualenv /home/deploy/realms-wiki/.venv && \
-    cd /home/deploy/realms-wiki && \
-    .venv/bin/pip install realms-wiki
-
+# Add start script
 ADD realms-wiki.sh /home/deploy/run.sh
 RUN chmod +x /home/deploy/run.sh
-
-# Clear some fat
-RUN apt-get clean && \
-  rm -rf \
-    /var/lib/apt/lists/* \
-    /tmp/* \
-    /var/tmp/*
 
 ENTRYPOINT ["/bin/su", "-m", "deploy", "-c", "/home/deploy/run.sh"]
 CMD []
